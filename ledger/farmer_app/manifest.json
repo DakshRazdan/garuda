@@ -1,0 +1,9 @@
+{
+  "name": "GI Batch Capture",
+  "short_name": "GI Capture",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#2d6a4f",
+  "icons": []
+}

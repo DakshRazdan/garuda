@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GI Batch Capture</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root{
+    --navy:#0B3D91;
+    --navy-dark:#082C6C;
+    --navy-tint:#E7ECF8;
+    --saffron:#B75A12;
+    --saffron-dark:#8F470E;
+    --saffron-tint:#F4E6D6;
+    --ink:#1B2530;
+    --ink-soft:#5A6472;
+    --line:#D9DCE2;
+    --bg:#FFFFFF;
+    --bg-alt:#F2F3F5;
+    --paper:#FFFFFF;
+    --success:#1E7B34;
+    --success-tint:#E5F3E8;
+    --danger:#B3261E;
+    --danger-tint:#FBEAE9;
+    --warn:#8A5A00;
+    --warn-tint:#FBF1DD;
+    --radius-lg:8px;
+    --radius-md:6px;
+    --radius-sm:4px;
+    --shadow:0 1px 2px rgba(16,24,40,0.06);
+    --font-display:'Inter',system-ui,sans-serif;
+    --font-body:'Inter',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:var(--font-body); font-size:13px; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; }
+  :focus-visible{ outline:2px solid var(--navy); outline-offset:1px; }
+
+  .masthead-top{
+    background:var(--navy);
+    padding:22px 28px; display:flex; align-items:center; gap:12px; color:#FFFFFF;
+    border-bottom:3px solid var(--saffron);
+  }
+  .brand-seal{ flex:none; width:36px; height:36px; }
+  .brand-copy h1{ font-family:var(--font-display); font-weight:700; font-size:16px; letter-spacing:0.015em; margin:0; }
+  .brand-copy p{ margin:1px 0 0; font-size:11px; color:#D7E1F5; font-weight:400; }
+  .masthead-sub{
+    background:var(--bg-alt); padding:6px 18px; text-align:left;
+    font-family:var(--font-display); font-weight:600; font-size:10.5px; letter-spacing:0.05em;
+    text-transform:uppercase; color:var(--navy); border-bottom:1px solid var(--line);
+  }
+
+  .page{ max-width:480px; margin:0 auto; padding:14px 16px 32px; }
+  .card{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-lg); padding:15px 16px 17px; box-shadow:var(--shadow); }
+
+  h1{ font-size:18px; }
+
+  #queueCount{
+    font-size:11.5px; color:var(--ink-soft); margin-bottom:12px; padding:8px 11px;
+    background:var(--bg-alt); border-radius:var(--radius-sm); display:flex; align-items:center; gap:7px;
+  }
+  #queueCount::before{
+    content:"\f2f1"; font-family:"Font Awesome 6 Free"; font-weight:900; color:var(--navy); font-size:11px;
+  }
+
+  label{
+    display:block; margin-top:12px; font-family:var(--font-display); font-weight:600;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft);
+  }
+  #batchForm > label:first-of-type{ margin-top:0; }
+
+  select, input{
+    width:100%; padding:8px 11px; font-size:13.5px; font-family:var(--font-body);
+    margin-top:5px; box-sizing:border-box; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    background:var(--paper); color:var(--ink);
+  }
+  select{
+    appearance:none; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230B3D91' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center;
+  }
+  input:focus, select:focus{ outline:none; border-color:var(--navy); }
+  input::placeholder{ color:#96A0AB; }
+
+  button{
+    width:100%; padding:11px; margin-top:16px; font-family:var(--font-display);
+    font-size:13.5px; font-weight:600; letter-spacing:0.01em;
+    background:var(--navy); color:#FFFFFF; border:none; border-radius:var(--radius-sm);
+    cursor:pointer; transition:background .15s ease;
+  }
+  button:hover{ background:var(--navy-dark); }
+  button:active{ transform:scale(0.99); }
+  button:disabled{ background:#A9B7D6; cursor:not-allowed; }
+
+  #status{ margin-top:0; padding:0; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; }
+  #status:not(:empty){ margin-top:12px; padding:9px 12px; }
+  .ok{ background:var(--success-tint); color:var(--success); }
+  .pending{ background:var(--warn-tint); color:var(--warn); }
+  .err{ background:var(--danger-tint); color:var(--danger); }
+</style>
+</head>
+<body>
+
+<header class="masthead-top">
+  <svg class="brand-seal" viewBox="0 0 64 64" role="img" aria-label="GI authentication seal">
+    <circle cx="32" cy="32" r="30" fill="#082C6C"></circle>
+    <circle cx="32" cy="32" r="25" fill="none" stroke="#B75A12" stroke-width="1.6" stroke-dasharray="2.2 3.4"></circle>
+    <path d="M32 14c-6 4-10 9-10 16 0 6 4.5 11 10 11s10-5 10-11c0-7-4-12-10-16z" fill="#F4E6D6"></path>
+    <path d="M32 22v18M26 27l6-5 6 5M27 33l5-3 5 3" stroke="#082C6C" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+  <div class="brand-copy">
+    <h1>GI Batch Capture</h1>
+    <p>Field logging for the GI Volume Reconciliation Engine</p>
+  </div>
+</header>
+<div class="masthead-sub">Farm Intake</div>
+
+<div class="page">
+  <div class="card">
+    <div id="queueCount">Checking sync queue...</div>
+
+    <form id="batchForm">
+      <label for="farmId">Farm</label>
+      <select id="farmId" required></select>
+
+      <label for="cropType">Crop type</label>
+      <input id="cropType" type="text" placeholder="e.g. tea" required>
+
+      <label for="weightKg">Weight (kg)</label>
+      <input id="weightKg" type="number" step="0.1" min="0" required>
+
+      <button type="submit">Log Batch</button>
+    </form>
+
+    <div id="status"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
