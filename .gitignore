@@ -1,0 +1,29 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.pyre/
+
+# Packaging/build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local environment files
+.env
+.env.*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+.venv/
