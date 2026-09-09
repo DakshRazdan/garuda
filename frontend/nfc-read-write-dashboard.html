@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GI Tag Field Encoding Station — Issuer Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root{
+    --navy:#0B3D91;
+    --navy-dark:#082C6C;
+    --navy-tint:#E7ECF8;
+    --saffron:#B75A12;
+    --saffron-dark:#8F470E;
+    --saffron-tint:#F4E6D6;
+    --ink:#1B2530;
+    --ink-soft:#5A6472;
+    --line:#D9DCE2;
+    --bg:#FFFFFF;
+    --bg-alt:#F2F3F5;
+    --paper:#FFFFFF;
+    --success:#1E7B34;
+    --success-tint:#E5F3E8;
+    --danger:#B3261E;
+    --danger-tint:#FBEAE9;
+    --warn:#8A5A00;
+    --warn-tint:#FBF1DD;
+    --radius-lg:8px;
+    --radius-md:6px;
+    --radius-sm:4px;
+    --shadow:0 1px 2px rgba(16,24,40,0.06);
+    --font-display:'Inter',system-ui,sans-serif;
+    --font-body:'Inter',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:13px;-webkit-font-smoothing:antialiased;}
+  :focus-visible{outline:2px solid var(--navy);outline-offset:1px;}
+
+  .masthead-top{
+    background:var(--navy);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;
+    gap:16px;color:#fff;border-bottom:3px solid var(--saffron);flex-wrap:wrap;
+  }
+  .masthead-left{display:flex;align-items:center;gap:16px;}
+  .brand-seal{flex:none;width:38px;height:38px;}
+  .brand-copy h1{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:0.02em;margin:0;}
+  .brand-copy p{margin:1px 0 0;font-size:11.5px;color:#D7E1F5;font-weight:400;}
+  .role-chip{
+    display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.22);
+    border-radius:999px;padding:6px 13px;font-size:11.5px;font-weight:600;color:#fff;
+  }
+  .role-chip i{color:var(--saffron);font-size:11px;}
+
+  .subnav{background:var(--navy-dark);display:flex;gap:2px;padding:0 24px;overflow-x:auto;}
+  .subnav button{
+    background:transparent;border:none;color:#B9C6E6;padding:11px 16px;font-size:12.5px;font-weight:600;
+    cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:7px;
+  }
+  .subnav button i{font-size:12px;}
+  .subnav button:hover{color:#fff;}
+  .subnav button.active{color:#fff;border-bottom-color:var(--saffron);}
+
+  main{max-width:900px;margin:0 auto;padding:20px 20px 60px;}
+  .pane{display:none;}
+  .pane.active{display:block;}
+
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .card h3{font-family:var(--font-display);font-size:13px;font-weight:600;margin:0 0 12px;color:var(--navy);display:flex;align-items:center;gap:7px;}
+  .card h3 i{color:var(--saffron);font-size:12px;}
+  .card p.hint{font-size:12px;color:var(--ink-soft);margin:-6px 0 12px;line-height:1.5;}
+
+  .context-card{background:var(--navy-tint);border:1px solid #C9D5EF;}
+  .context-card h3{color:var(--navy-dark);}
+  .context-card p{margin:0 0 8px;font-size:12.5px;color:#2E3F63;line-height:1.55;}
+  .context-card p:last-child{margin-bottom:0;}
+  .context-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;font-weight:600;color:var(--navy-dark);}
+  .context-flow .step{background:#fff;border:1px solid #C9D5EF;border-radius:999px;padding:5px 12px;}
+  .context-flow i{color:var(--saffron);font-size:10px;}
+
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink);margin:14px 0 6px;}
+  label:first-child{margin-top:0;}
+  label .req{color:var(--danger);}
+  label .opt{color:var(--ink-soft);font-weight:500;}
+  input[type=text], input[type=number], select, textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);
+    font-size:13.5px;font-family:var(--font-body);background:#fff;color:var(--ink);
+  }
+  input.mono, textarea.mono{font-family:var(--font-mono);font-size:12.5px;}
+  input:focus, select:focus, textarea:focus{border-color:var(--navy);}
+  input.invalid{border-color:var(--danger);}
+  .field-error{font-size:11.5px;color:var(--danger);margin-top:5px;display:none;}
+  .field-error.show{display:block;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:600px){.field-row{grid-template-columns:1fr;}}
+
+  .btn{
+    font-family:var(--font-display);font-weight:600;font-size:12.5px;padding:9px 16px;border-radius:var(--radius-sm);
+    border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .15s ease;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary:hover{background:var(--navy-dark);}
+  .btn-primary:disabled{background:#A9B7D6;cursor:not-allowed;}
+  .btn-saffron{background:var(--saffron);color:#fff;}
+  .btn-saffron:hover{background:var(--saffron-dark);}
+  .btn-saffron:disabled{background:#D9B48F;cursor:not-allowed;}
+  .btn-outline{background:transparent;border:1.5px solid var(--line);color:var(--ink);}
+  .btn-outline:hover{border-color:var(--navy);color:var(--navy);}
+
+  .gauge-wrap{margin-top:6px;}
+  .gauge-track{position:relative;height:28px;border-radius:6px;background:var(--bg-alt);border:1px solid var(--line);overflow:hidden;}
+  .gauge-fill{height:100%;background:var(--navy);transition:width .2s ease, background .2s ease;}
+  .gauge-fill.warn{background:var(--warn);}
+  .gauge-fill.over{background:var(--danger);}
+  .gauge-limit-marker{position:absolute;top:0;bottom:0;width:2px;background:var(--saffron);}
+  .gauge-limit-label{position:absolute;top:-18px;font-size:10px;color:var(--saffron-dark);font-weight:700;white-space:nowrap;}
+  .gauge-legend{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--ink-soft);}
+  .gauge-legend .bytes{font-family:var(--font-mono);font-weight:600;color:var(--ink);}
+
+  .payload-box{
+    background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 14px;
+    font-family:var(--font-mono);font-size:12px;color:var(--ink);word-break:break-all;white-space:pre-wrap;line-height:1.6;
+  }
+
+  .demo-banner{
+    background:var(--warn-tint);border:1px solid #E3C98E;border-radius:var(--radius-md);padding:11px 13px;
+    display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#6B4A0F;line-height:1.5;
+  }
+  .demo-banner i{color:var(--warn);margin-top:1px;}
+
+  .status{margin-top:14px;padding:13px 14px;border-radius:var(--radius-md);background:var(--bg-alt);font-size:12.5px;white-space:pre-wrap;line-height:1.55;}
+  .status.success{background:var(--success-tint);color:var(--success);}
+  .status.error{background:var(--danger-tint);color:var(--danger);}
+  .status.idle{color:var(--ink-soft);}
+
+  .scanner-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 2px;}
+  .scanner-visual{position:relative;width:110px;height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+  .scan-ring{position:absolute;border-radius:50%;border:2px solid var(--saffron);opacity:0;}
+  .scan-ring.animate{animation:pulse-ring 1.8s ease-out infinite;}
+  .scan-ring.r2{animation-delay:.6s;}
+  @keyframes pulse-ring{0%{width:44px;height:44px;opacity:.9;}100%{width:110px;height:110px;opacity:0;}}
+  @media (prefers-reduced-motion:reduce){.scan-ring.animate{animation:none;opacity:.35;}}
+  .tag-icon{width:56px;height:56px;border-radius:10px;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--navy);border:1px solid var(--line);}
+
+  .vd-rows{display:flex;flex-direction:column;}
+  .vd-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
+  .vd-row:last-child{border-bottom:none;}
+  .vd-label{font-size:11.5px;color:var(--ink-soft);}
+  .vd-value{font-size:12.5px;font-weight:600;color:var(--ink);text-align:right;}
+  .vd-value.mono{font-family:var(--font-mono);font-weight:500;}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--radius-sm);}
+  .badge-ok{background:var(--success-tint);color:var(--success);}
+  .badge-bad{background:var(--danger-tint);color:var(--danger);}
+
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead th{text-align:left;font-family:var(--font-display);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);padding:0 8px 8px;border-bottom:1.5px solid var(--line);white-space:nowrap;}
+  tbody td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.mono{font-family:var(--font-mono);font-size:11.5px;}
+  .status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--radius-sm);}
+  .status-approved{background:var(--success-tint);color:var(--success);}
+  .status-rejected{background:var(--danger-tint);color:var(--danger);}
+  .empty-row td{color:var(--ink-soft);font-style:normal;}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+  @media (max-width:600px){.stat-row{grid-template-columns:1fr;}}
+  .stat-box{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow);}
+  .stat-box .stat-num{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--navy);}
+  .stat-box .stat-label{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="masthead-top">
+    <div class="masthead-left">
+      <svg class="brand-seal" viewBox="0 0 64 64" role="img" aria-label="GI authentication seal">
+        <circle cx="32" cy="32" r="30" fill="#082C6C"></circle>
+        <circle cx="32" cy="32" r="25" fill="none" stroke="#B75A12" stroke-width="1.6" stroke-dasharray="2.2 3.4"></circle>
+        <path d="M32 14c-6 4-10 9-10 16 0 6 4.5 11 10 11s10-5 10-11c0-7-4-12-10-16z" fill="#F6E2D4"></path>
+        <path d="M32 22v18M26 27l6-5 6 5M27 33l5-3 5 3" stroke="#082C6C" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <div class="brand-copy">
+        <h1>GI Volume Reconciliation Engine</h1>
+        <p>Field Encoding Station — Issuer Tool</p>
+      </div>
+    </div>
+    <div class="role-chip"><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Authorized packer / field agent</div>
+  </div>
+  <nav class="subnav">
+    <button class="active" data-pane="p-issue" onclick="switchPane(this)"><i class="fa-solid fa-stamp" aria-hidden="true"></i> Issue &amp; write tag</button>
+    <button data-pane="p-read" onclick="switchPane(this)"><i class="fa-solid fa-wifi" aria-hidden="true"></i> Read / test tag</button>
+    <button data-pane="p-log" onclick="switchPane(this)"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Session log</button>
+    <button data-pane="p-about" onclick="switchPane(this)"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About this tool</button>
+  </nav>
+</header>
+
+<main>
+
+  <div class="pane active" id="p-issue">
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="statIssued">0</div><div class="stat-label">Tags written this session</div></div>
+      <div class="stat-box"><div class="stat-num" id="statBatch">—</div><div class="stat-label">Active batch</div></div>
+      <div class="stat-box"><div class="stat-num" id="statNextSeq">001</div><div class="stat-label">Next unit sequence</div></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Batch details</h3>
+      <p class="hint">Every unit belongs to a batch already registered on the regulator's ledger. This form only prepares the chip — it does not create the batch record.</p>
+
+      <label for="batchNumber">Batch number <span class="req">*</span></label>
+      <input type="text" id="batchNumber" class="mono" placeholder="BATCH-2026-001" maxlength="30" oninput="onBatchChange()">
+      <div class="field-error" id="err-batch">Use the format BATCH-YYYY-NNN, e.g. BATCH-2026-001.</div>
+
+      <div class="field-row">
+        <div>
+          <label for="cropType">Crop / product <span class="req">*</span></label>
+          <input type="text" id="cropType" list="cropList" placeholder="Start typing…" oninput="refreshPayload()">
+          <datalist id="cropList">
+            <option value="Darjeeling Tea">
+            <option value="Alphonso Mango">
+            <option value="Coorg Arabica Coffee">
+            <option value="Nagpur Orange">
+            <option value="Kashmir Saffron">
+            <option value="Basmati Rice">
+            <option value="Malda Mango">
+            <option value="Mahabaleshwar Strawberry">
+          </datalist>
+        </div>
+        <div>
+          <label for="unitWeight">Unit weight, kg <span class="req">*</span></label>
+          <input type="number" id="unitWeight" min="0.01" step="0.01" placeholder="e.g. 5.0" oninput="refreshPayload()">
+        </div>
+      </div>
+
+      <label for="fieldNotes">Field notes <span class="opt">(kept on this device only, not written to the chip)</span></label>
+      <textarea id="fieldNotes" rows="2" placeholder="Inspector name, packing shed, destination market…"></textarea>
+    </div>
+
+    <div class="card">
+      <h3><i class="fa-solid fa-fingerprint" aria-hidden="true"></i> Unit identity &amp; signature</h3>
+      <p class="hint">The unit ID and signature are the only two fields written to the chip. Everything else about the product stays on the regulator's ledger and is looked up when a customer scans the tag.</p>
+
+      <div class="field-row">
+        <div>
+          <label for="unitId">Unit ID</label>
+          <input type="text" id="unitId" class="mono" readonly>
+        </div>
+        <div>
+          <label for="signature">Signature <span class="opt">(demo)</span></label>
+          <input type="text" id="signature" class="mono" readonly>
+        </div>
+      </div>
+
+      <div class="demo-banner" style="margin-top:12px;">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <div><strong>Demo signing.</strong> This tool computes the signature in the browser so the demo works offline. In production, the unit ID and signature must be issued by the regulator's server using a private key that never leaves the backend — otherwise anyone could forge a valid-looking tag.</div>
+      </div>
+
+      <button class="btn btn-outline" style="margin-top:12px;" onclick="issueUnit()"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Generate unit ID &amp; signature</button>
+    </div>
+
+    <div class="card">
+      <h3><i class="fa-solid fa-microchip" aria-hidden="true"></i> Chip payload &amp; memory budget</h3>
+      <p class="hint">An NTAG213 has 144 bytes of user memory. After the NDEF message overhead, roughly <strong>137 bytes</strong> are usable — this is why only the two identity fields go on the chip.</p>
+
+      <div class="gauge-wrap">
+        <div class="gauge-track">
+          <div class="gauge-fill" id="gaugeFill" style="width:0%"></div>
+          <div class="gauge-limit-marker" id="gaugeMarker" style="left:0%"></div>
+        </div>
+        <div class="gauge-legend">
+          <span><span class="bytes" id="byteCount">0</span> / 144 bytes used</span>
+          <span>Usable limit: <span class="bytes">137 bytes</span></span>
+        </div>
+      </div>
+
+      <label style="margin-top:16px;">Payload that will be written</label>
+      <div class="payload-box" id="payloadPreview">—</div>
+
+      <div class="scanner-wrap" style="margin-top:16px;">
+        <div class="scanner-visual">
+          <div class="scan-ring r1" id="wRing1"></div>
+          <div class="scan-ring r2" id="wRing2"></div>
+          <div class="tag-icon"><i class="fa-solid fa-tag" aria-hidden="true"></i></div>
+        </div>
+        <button class="btn btn-saffron" id="writeBtn" onclick="writeTag()" disabled>
+          <i class="fa-solid fa-hand-pointer" aria-hidden="true"></i> Hold chip against phone to write
+        </button>
+      </div>
+
+      <div class="status idle" id="writeStatus">Generate a unit ID above, then hold a blank NTAG213 chip against your phone to write it.</div>
+    </div>
+  </div>
+
+  <div class="pane" id="p-read">
+    <div class="card">
+      <h3><i class="fa-solid fa-wifi" aria-hidden="true"></i> Read a chip</h3>
+      <p class="hint">Use this to confirm a chip was written correctly before it leaves the packing line — it decodes exactly what a customer's phone would read.</p>
+
+      <div class="scanner-wrap">
+        <div class="scanner-visual">
+          <div class="scan-ring r1" id="rRing1"></div>
+          <div class="scan-ring r2" id="rRing2"></div>
+          <div class="tag-icon"><i class="fa-solid fa-tag" aria-hidden="true"></i></div>
+        </div>
+        <button class="btn btn-primary" id="readBtn" onclick="readTag()">
+          <i class="fa-solid fa-hand-pointer" aria-hidden="true"></i> Tap to read tag
+        </button>
+      </div>
+      <div class="status idle" id="readStatus">Ready to read</div>
+    </div>
+
+    <div class="card" id="readResultCard" style="display:none;">
+      <h3><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Decoded contents</h3>
+      <div class="vd-rows" id="readResultRows"></div>
+    </div>
+  </div>
+
+  <div class="pane" id="p-log">
+    <div class="card">
+      <h3><i class="fa-solid fa-list-check" aria-hidden="true"></i> Tags written this session</h3>
+      <p class="hint">Kept on this device only, so you can spot-check today's run. It is not the regulator's system of record.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Time</th><th>Batch</th><th>Unit ID</th><th>Bytes</th><th>Result</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-outline" style="margin-top:12px;" onclick="clearLog()"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear session log</button>
+    </div>
+  </div>
+
+  <div class="pane" id="p-about">
+    <div class="card context-card">
+      <h3><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Where this tool fits</h3>
+      <p>The GI Volume Reconciliation Engine authenticates GI (Geographical Indication) tagged produce by pairing each physical unit with an NFC chip that carries only a unit ID and a regulator-issued signature.</p>
+      <p>This <strong>Field Encoding Station</strong> is the issuer-side half of that system: an authorized packer writes a chip for each unit as it leaves the packing line. The <strong>consumer portal</strong> is the other half — a shopper taps the same chip and the portal calls the ledger's <code>/verify</code> endpoint to check the unit ID, signature, and chip UID against the regulator's records.</p>
+      <div class="context-flow">
+        <span class="step">Batch registered on ledger</span>
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        <span class="step">Field agent issues + writes chip</span>
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        <span class="step">Chip shipped with product</span>
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        <span class="step">Consumer scans + verifies</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Constraints this tool enforces</h3>
+      <div class="vd-rows">
+        <div class="vd-row"><span class="vd-label">Chip type</span><span class="vd-value">NTAG213 (144 bytes user memory)</span></div>
+        <div class="vd-row"><span class="vd-label">Usable payload</span><span class="vd-value">≈137 bytes after NDEF overhead</span></div>
+        <div class="vd-row"><span class="vd-label">Data written to chip</span><span class="vd-value">unit_id, signature only</span></div>
+        <div class="vd-row"><span class="vd-label">Batch number format</span><span class="vd-value mono">BATCH-YYYY-NNN</span></div>
+        <div class="vd-row"><span class="vd-label">Browser requirement</span><span class="vd-value">Chrome on Android (Web NFC)</span></div>
+        <div class="vd-row"><span class="vd-label">Signature origin</span><span class="vd-value">Should be server-issued, not client-side</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const MAX_TAG_BYTES = 144;      
+const MAX_USABLE_BYTES = 137;   
+const LOG_KEY = "gi_writer_session_log";
+const SEQ_KEY = "gi_writer_batch_sequences";
+const encoder = new TextEncoder();
+
+function switchPane(btn){
+  document.querySelectorAll('.subnav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(btn.dataset.pane).classList.add('active');
+}
+
+const BATCH_RE = /^BATCH-\d{4}-\d{3,}$/;
+
+function getSequences(){
+  try{ return JSON.parse(localStorage.getItem(SEQ_KEY) || '{}'); } catch(e){ return {}; }
+}
+function saveSequences(seqs){ localStorage.setItem(SEQ_KEY, JSON.stringify(seqs)); }
+
+function onBatchChange(){
+  const input = document.getElementById('batchNumber');
+  const err = document.getElementById('err-batch');
+  const val = input.value.trim().toUpperCase();
+  input.value = val;
+  const valid = BATCH_RE.test(val);
+  input.classList.toggle('invalid', val.length > 0 && !valid);
+  err.classList.toggle('show', val.length > 0 && !valid);
+  document.getElementById('statBatch').textContent = valid ? val : '—';
+
+  const seqs = getSequences();
+  const next = valid ? (seqs[val] || 0) + 1 : 1;
+  document.getElementById('statNextSeq').textContent = String(next).padStart(3,'0');
+  refreshPayload();
+}
+
+async function sha256Hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', encoder.encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function issueUnit(){
+  const batch = document.getElementById('batchNumber').value.trim();
+  if(!BATCH_RE.test(batch)){
+    onBatchChange();
+    document.getElementById('batchNumber').focus();
+    return;
+  }
+  const seqs = getSequences();
+  const seq = (seqs[batch] || 0) + 1;
+  const unitId = `${batch}-U${String(seq).padStart(3,'0')}`;
+
+  const hash = await sha256Hex(unitId + '|' + batch + '|demo-salt-do-not-use-in-prod');
+  const signature = hash.slice(0, 20);
+
+  document.getElementById('unitId').value = unitId;
+  document.getElementById('signature').value = signature;
+  document.getElementById('unitId').dataset.seq = seq;
+  refreshPayload();
+}
+
+function currentPayload(){
+  const unitId = document.getElementById('unitId').value;
+  const signature = document.getElementById('signature').value;
+  if(!unitId || !signature) return null;
+  return { unit_id: unitId, signature };
+}
+
+function refreshPayload(){
+  const payload = currentPayload();
+  const preview = document.getElementById('payloadPreview');
+  const writeBtn = document.getElementById('writeBtn');
+  const fill = document.getElementById('gaugeFill');
+  const marker = document.getElementById('gaugeMarker');
+  const byteCountEl = document.getElementById('byteCount');
+
+  marker.style.left = ((MAX_USABLE_BYTES / MAX_TAG_BYTES) * 100).toFixed(1) + '%';
+
+  if(!payload){
+    preview.textContent = '—';
+    fill.style.width = '0%';
+    fill.className = 'gauge-fill';
+    byteCountEl.textContent = '0';
+    writeBtn.disabled = true;
+    return;
+  }
+
+  const json = JSON.stringify(payload);
+  preview.textContent = json;
+  const bytes = encoder.encode(json).length;
+  byteCountEl.textContent = bytes;
+
+  const pct = Math.min(100, (bytes / MAX_TAG_BYTES) * 100);
+  fill.style.width = pct.toFixed(1) + '%';
+  fill.className = 'gauge-fill' + (bytes > MAX_USABLE_BYTES ? ' over' : bytes > MAX_USABLE_BYTES * 0.85 ? ' warn' : '');
+
+  const cropOk = document.getElementById('cropType').value.trim().length > 0;
+  const weightOk = parseFloat(document.getElementById('unitWeight').value) > 0;
+  writeBtn.disabled = bytes > MAX_USABLE_BYTES || !cropOk || !weightOk;
+}
+
+function setWriteStatus(msg, type){
+  const el = document.getElementById('writeStatus');
+  el.textContent = msg;
+  el.className = 'status' + (type ? ' ' + type : ' idle');
+}
+
+async function writeTag(){
+  if(!('NDEFReader' in window)){
+    setWriteStatus('Web NFC is not supported on this browser.\nUse an NFC-enabled Android phone with Chrome.', 'error');
+    return;
+  }
+  const payload = currentPayload();
+  if(!payload){
+    setWriteStatus('Generate a unit ID and signature first.', 'error');
+    return;
+  }
+  const json = JSON.stringify(payload);
+  const bytes = encoder.encode(json).length;
+  if(bytes > MAX_USABLE_BYTES){
+    setWriteStatus(`Payload is ${bytes} bytes, over the ${MAX_USABLE_BYTES}-byte usable limit.`, 'error');
+    return;
+  }
+
+  const writeBtn = document.getElementById('writeBtn');
+  const ring1 = document.getElementById('wRing1'), ring2 = document.getElementById('wRing2');
+  writeBtn.disabled = true;
+  ring1.classList.add('animate'); ring2.classList.add('animate');
+  setWriteStatus('Hold the blank NTAG213 chip against the back of your phone…');
+
+  try{
+    const ndef = new NDEFReader();
+    await ndef.write({ records: [{ recordType: 'text', data: json }] });
+
+    setWriteStatus(`Chip written successfully.\n${json}`, 'success');
+
+    logWrite({
+      time: new Date().toISOString(),
+      batch: document.getElementById('batchNumber').value.trim(),
+      unitId: payload.unit_id,
+      bytes,
+      ok: true,
+    });
+
+    const batch = document.getElementById('batchNumber').value.trim();
+    const seqs = getSequences();
+    seqs[batch] = parseInt(document.getElementById('unitId').dataset.seq || '0', 10) || (seqs[batch] || 0) + 1;
+    saveSequences(seqs);
+    onBatchChange();
+
+  } catch(error){
+    setWriteStatus('Write failed.\n' + error.message, 'error');
+    logWrite({
+      time: new Date().toISOString(),
+      batch: document.getElementById('batchNumber').value.trim(),
+      unitId: payload.unit_id,
+      bytes,
+      ok: false,
+    });
+  } finally {
+    ring1.classList.remove('animate'); ring2.classList.remove('animate');
+    refreshPayload();
+  }
+}
+
+function scanOnce(){
+  return new Promise((resolve, reject) => {
+    if(!('NDEFReader' in window)){
+      reject(new Error('Web NFC not supported, use Chrome on Android'));
+      return;
+    }
+    const ndef = new NDEFReader();
+    const controller = new AbortController();
+    ndef.scan({ signal: controller.signal }).then(() => {
+      ndef.onreading = (event) => { controller.abort(); resolve(event); };
+      ndef.onreadingerror = () => { controller.abort(); reject(new Error('Could not read tag, try again')); };
+    }).catch(reject);
+  });
+}
+
+function setReadStatus(msg, type){
+  const el = document.getElementById('readStatus');
+  el.textContent = msg;
+  el.className = 'status' + (type ? ' ' + type : ' idle');
+}
+
+async function readTag(){
+  const readBtn = document.getElementById('readBtn');
+  const ring1 = document.getElementById('rRing1'), ring2 = document.getElementById('rRing2');
+  const resultCard = document.getElementById('readResultCard');
+  const rows = document.getElementById('readResultRows');
+  resultCard.style.display = 'none';
+  readBtn.disabled = true;
+  ring1.classList.add('animate'); ring2.classList.add('animate');
+  setReadStatus('Hold the chip against the back of your phone…');
+
+  try{
+    const event = await scanOnce();
+    const tagUid = event.serialNumber || 'unavailable on this device';
+    let payload = null, raw = '';
+    for(const record of event.message.records){
+      if(record.recordType === 'text'){
+        const decoder = new TextDecoder(record.encoding || 'utf-8');
+        raw = decoder.decode(record.data);
+        try{ payload = JSON.parse(raw); } catch(e){ payload = null; }
+      }
+    }
+    const bytes = raw ? encoder.encode(raw).length : 0;
+    const wellFormed = !!(payload && payload.unit_id && payload.signature);
+
+    setReadStatus('Read complete.', 'success');
+    rows.innerHTML = `
+      <div class="vd-row"><span class="vd-label">Chip UID</span><span class="vd-value mono">${tagUid}</span></div>
+      <div class="vd-row"><span class="vd-label">Raw payload</span><span class="vd-value mono">${raw || '(empty)'}</span></div>
+      <div class="vd-row"><span class="vd-label">Bytes used</span><span class="vd-value">${bytes} / ${MAX_USABLE_BYTES}</span></div>
+      <div class="vd-row"><span class="vd-label">unit_id</span><span class="vd-value mono">${payload && payload.unit_id ? payload.unit_id : '—'}</span></div>
+      <div class="vd-row"><span class="vd-label">signature</span><span class="vd-value mono">${payload && payload.signature ? payload.signature : '—'}</span></div>
+      <div class="vd-row"><span class="vd-label">Structure</span><span class="vd-value">${wellFormed
+        ? '<span class="badge badge-ok"><i class="fa-solid fa-check" aria-hidden="true"></i> Matches consumer portal format</span>'
+        : '<span class="badge badge-bad"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Missing required fields</span>'}</span></div>
+    `;
+    resultCard.style.display = 'block';
+
+  } catch(e){
+    setReadStatus(e.message, 'error');
+  } finally {
+    ring1.classList.remove('animate'); ring2.classList.remove('animate');
+    readBtn.disabled = false;
+  }
+}
+
+function getLog(){
+  try{ return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch(e){ return []; }
+}
+function logWrite(entry){
+  const log = getLog();
+  log.unshift(entry);
+  localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 100)));
+  renderLog();
+}
+function clearLog(){
+  localStorage.removeItem(LOG_KEY);
+  renderLog();
+}
+function formatTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ' · ' + d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+}
+function renderLog(){
+  const body = document.getElementById('logBody');
+  const log = getLog();
+  document.getElementById('statIssued').textContent = log.filter(e => e.ok).length;
+  if(log.length === 0){
+    body.innerHTML = '<tr class="empty-row"><td colspan="5">No tags written yet this session</td></tr>';
+    return;
+  }
+  body.innerHTML = log.map(e => `
+    <tr>
+      <td>${formatTime(e.time)}</td>
+      <td class="mono">${e.batch}</td>
+      <td class="mono">${e.unitId}</td>
+      <td>${e.bytes} B</td>
+      <td>${e.ok
+        ? '<span class="status-pill status-approved"><i class="fa-solid fa-check" aria-hidden="true"></i> Written</span>'
+        : '<span class="status-pill status-rejected"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Failed</span>'}</td>
+    </tr>`).join('');
+}
+
+document.getElementById('unitWeight').addEventListener('input', refreshPayload);
+onBatchChange();
+refreshPayload();
+renderLog();
+</script>
+
+</body>
+</html>
+
