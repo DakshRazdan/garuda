@@ -43,6 +43,58 @@ The system combines a tamper-evident batch ledger, NFC-based unit tagging, and q
 
 ---
 
+## Project Structure
+## Repository Structure
+
+```
+garuda/
+├── .gitignore
+├── LICENSE
+├── README.md
+├── start_demo.sh
+│
+├── api/                          # FastAPI layer — HTTP routes, request/response schemas
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── routes/
+│   │   ├── batch.py
+│   │   ├── checkpoint.py
+│   │   ├── claim.py
+│   │   ├── quota.py
+│   │   └── verify.py
+│   ├── schemas/
+│   │   ├── batch.py
+│   │   ├── checkpoint.py
+│   │   ├── claim.py
+│   │   ├── region.py
+│   │   └── verify.py
+│   └── services/
+│       ├── ledger_bridge.py      # bridges API routes to the ledger core
+│       └── security.py           # HMAC signing for NFC tag <-> unit binding
+│
+├── ledger/                       # core domain logic — the reconciliation engine
+│   ├── database.py
+│   ├── models.py
+│   ├── hash_chain.py
+│   ├── reconciliation.py
+│   ├── seed_data.py              # populates demo data
+│   ├── demo_flow.py              # scripted end-to-end demo run
+│   ├── test_reconciliation.py
+│   ├── requirements.txt
+│   └── farmer_app/               # farmer-facing offline-first PWA
+│       ├── index.html
+│       ├── app.js
+│       ├── manifest.json
+│       └── sw.js
+│
+└── frontend/                     # staff/regulator/consumer-facing dashboards
+    ├── farmer-dashboard.html
+    ├── nfc-read-write-dashboard.html
+    ├── regulator-dashboard.html
+    └── consumer-dashboard.html
+```
+---
+
 ## Implementation Details
 
 - **Ledger Model**  
