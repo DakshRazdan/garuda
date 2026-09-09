@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GI Volume Reconciliation Engine — Consumer Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root{
+    --navy:#0B3D91;
+    --navy-dark:#082C6C;
+    --navy-tint:#E7ECF8;
+    --saffron:#B75A12;
+    --saffron-dark:#8F470E;
+    --saffron-tint:#F4E6D6;
+    --ink:#1B2530;
+    --ink-soft:#5A6472;
+    --line:#D9DCE2;
+    --bg:#FFFFFF;
+    --bg-alt:#F2F3F5;
+    --paper:#FFFFFF;
+    --track:#E4E7EC;
+    --success:#1E7B34;
+    --success-tint:#E5F3E8;
+    --danger:#B3261E;
+    --danger-tint:#FBEAE9;
+    --warn:#8A5A00;
+    --warn-tint:#FBF1DD;
+    --radius-lg:8px;
+    --radius-md:6px;
+    --radius-sm:4px;
+    --shadow:0 1px 2px rgba(16,24,40,0.06);
+    --font-display:'Inter',system-ui,sans-serif;
+    --font-body:'Inter',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:13px;
+    -webkit-font-smoothing:antialiased;
+  }
+  :focus-visible{outline:2px solid var(--navy);outline-offset:1px;}
+
+  .masthead{position:relative;}
+  .masthead-top{
+    background:var(--navy);
+    padding:22px 28px;
+    display:flex;align-items:center;gap:16px;
+    color:#FFFFFF;
+    border-bottom:3px solid var(--saffron);
+  }
+  .brand-seal{flex:none;width:38px;height:38px;}
+  .brand-copy h1{
+    font-family:var(--font-display);font-weight:700;
+    font-size:16px;letter-spacing:0.02em;margin:0;
+  }
+  .brand-copy p{margin:1px 0 0;font-size:11.5px;color:#D7E1F5;font-weight:400;}
+
+  .portal{display:flex;min-height:650px;}
+  .sidebar{
+    flex:none;width:220px;background:var(--navy-dark);color:#DCE4F3;
+    padding:20px 0;display:flex;flex-direction:column;gap:2px;
+  }
+  .sidebar .nav-label{
+    font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:#93A9D6;
+    padding:4px 16px 6px;font-weight:600;
+  }
+  .sidebar button.nav-item{
+    display:flex;align-items:center;gap:9px;
+    background:transparent;border:none;color:#C7D3EA;
+    padding:8px 16px;font-size:12.5px;font-weight:500;text-align:left;cursor:pointer;
+    border-left:3px solid transparent;
+  }
+  .sidebar button.nav-item i{width:14px;font-size:13px;color:#93A9D6;}
+  .sidebar button.nav-item:hover{background:rgba(255,255,255,0.06);}
+  .sidebar button.nav-item.active{
+    background:rgba(255,255,255,0.08);border-left-color:var(--saffron);color:#FFFFFF;
+  }
+  .sidebar button.nav-item.active i{color:var(--saffron);}
+  .sidebar-foot{margin-top:auto;padding:12px 16px 2px;font-size:10px;color:#7A8FC2;border-top:1px solid rgba(255,255,255,0.1);}
+
+  .content{flex:1;padding:16px 20px 28px;min-width:0;}
+  .content-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .content-head h2{font-family:var(--font-display);font-size:16px;font-weight:600;margin:0;color:var(--navy);}
+  .content-head .content-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);
+  }
+  .card h3{
+    font-family:var(--font-display);font-size:13px;font-weight:600;margin:0 0 10px;color:var(--navy);
+    display:flex;align-items:center;gap:7px;
+  }
+  .card h3 i{color:var(--saffron);font-size:12px;}
+  .grid-2{display:grid;grid-template-columns:1.05fr 0.95fr;gap:12px;}
+  @media (max-width:900px){.grid-2{grid-template-columns:1fr;}}
+
+  .btn{
+    font-family:var(--font-display);font-weight:600;font-size:12.5px;letter-spacing:0.005em;
+    padding:8px 15px;border-radius:var(--radius-sm);border:none;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;transition:background .15s ease;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--navy);color:#FFFFFF;}
+  .btn-primary:hover{background:var(--navy-dark);}
+  .btn-primary:disabled{background:#A9B7D6;cursor:not-allowed;}
+  .btn-ghost-danger{background:transparent;border:1.5px solid var(--danger);color:var(--danger);}
+  .btn-ghost-danger:hover{background:var(--danger-tint);}
+  .btn-ghost-warn{background:transparent;border:1.5px solid var(--warn);color:var(--warn);}
+  .btn-ghost-warn:hover{background:var(--warn-tint);}
+
+  .scanner-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 0 2px;}
+  .scanner-visual{position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+  .scan-ring{position:absolute;border-radius:50%;border:2px solid var(--saffron);opacity:0;}
+  .scan-ring.animate{animation:pulse-ring 1.8s ease-out infinite;}
+  .scan-ring.r1{width:120px;height:120px;}
+  .scan-ring.r2{width:120px;height:120px;animation-delay:.6s;}
+  @keyframes pulse-ring{
+    0%{width:48px;height:48px;opacity:.9;}
+    100%{width:120px;height:120px;opacity:0;}
+  }
+  @media (prefers-reduced-motion:reduce){.scan-ring.animate{animation:none;opacity:.35;}}
+  .tag-icon{
+    width:60px;height:60px;border-radius:10px;background:var(--bg-alt);
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--navy);
+    border:1px solid var(--line);
+  }
+  .scan-status{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:12px;}
+  .scan-dot{width:7px;height:7px;border-radius:50%;background:#9AA5B2;}
+  .scan-dot.ready{background:#9AA5B2;}
+  .scan-dot.scanning{background:var(--saffron);animation:blink 1s ease-in-out infinite;}
+  .scan-dot.done{background:var(--success);}
+  .scan-dot.flagged{background:var(--danger);}
+  .scan-dot.mismatch{background:var(--warn);}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .scan-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+
+  .vd-grid{display:grid;grid-template-columns:96px 1fr;gap:10px 14px;}
+  .vd-icon-block{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .vd-icon-circle{
+    width:78px;height:78px;border-radius:50%;background:var(--bg-alt);
+    display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--navy);
+  }
+  .vd-rows{display:flex;flex-direction:column;gap:0;}
+  .vd-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);}
+  .vd-row:last-child{border-bottom:none;}
+  .vd-label{font-size:11.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+  .vd-label i{width:13px;color:var(--saffron);font-size:11px;}
+  .vd-value{font-size:12.5px;font-weight:600;color:var(--ink);text-align:right;}
+  .vd-value.mono{font-family:var(--font-mono);font-weight:500;letter-spacing:0.005em;}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--radius-sm);letter-spacing:0.01em;}
+  .badge-verified{background:var(--success-tint);color:var(--success);}
+
+  .flag-panel{background:var(--danger-tint);border:1px solid #EBC5C0;border-radius:var(--radius-md);padding:12px 14px;display:flex;gap:11px;align-items:flex-start;}
+  .flag-panel i{color:var(--danger);font-size:17px;margin-top:1px;}
+  .flag-panel h4{margin:0 0 3px;font-size:12.5px;color:var(--danger);font-family:var(--font-display);}
+  .flag-panel p{margin:0;font-size:12px;color:#7A2A22;line-height:1.45;}
+  .flag-panel.warn{background:var(--warn-tint);border-color:#E3C98E;}
+  .flag-panel.warn i{color:var(--warn);}
+  .flag-panel.warn h4{color:var(--warn);}
+  .flag-panel.warn p{color:#6B4A0F;}
+
+  .uid-compare{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
+  .uid-compare > div{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);padding:7px 10px;flex-wrap:wrap;}
+  .uid-compare-label{font-size:11px;color:var(--ink-soft);font-weight:600;}
+  .uid-compare-value{font-family:var(--font-mono);font-size:11.5px;font-weight:600;color:var(--ink);}
+  .uid-compare-value.mismatch{color:var(--danger);}
+
+  .cert{
+    background:var(--bg-alt);border:1.5px dashed var(--navy);border-radius:var(--radius-md);
+    padding:16px;position:relative;
+  }
+  .cert-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .cert-ribbon{font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--navy);}
+  .cert-id{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);}
+  .cert-hash{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-soft);word-break:break-all;background:var(--paper);border-radius:4px;padding:7px 9px;border:1px solid var(--line);margin:10px 0;}
+  .cert-foot{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-soft);}
+
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead th{
+    text-align:left;font-family:var(--font-display);font-weight:600;font-size:10.5px;text-transform:uppercase;
+    letter-spacing:0.04em;color:var(--ink-soft);padding:0 8px 7px;border-bottom:1.5px solid var(--line);white-space:nowrap;
+  }
+  tbody td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.mono{font-family:var(--font-mono);font-size:11.5px;}
+  .status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--radius-sm);}
+  .status-approved{background:var(--success-tint);color:var(--success);}
+  .status-rejected{background:var(--danger-tint);color:var(--danger);}
+
+  @media (max-width:820px){
+    .sidebar{width:100%;flex-direction:row;overflow-x:auto;padding:10px 8px;gap:4px;}
+    .sidebar .nav-label{display:none;}
+    .sidebar button.nav-item{flex:none;border-left:none;border-bottom:3px solid transparent;padding:99px 14px;white-space:nowrap;}
+    .sidebar button.nav-item.active{border-left-color:transparent;border-bottom-color:var(--saffron);}
+    .sidebar-foot{display:none;}
+    .portal{flex-direction:column;}
+    .content{padding:20px 16px 32px;}
+    .masthead-top{padding:18px 16px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <svg class="brand-seal" viewBox="0 0 64 64" role="img" aria-label="GI authentication seal">
+      <circle cx="32" cy="32" r="30" fill="#082C6C"></circle>
+      <circle cx="32" cy="32" r="25" fill="none" stroke="#B75A12" stroke-width="1.6" stroke-dasharray="2.2 3.4"></circle>
+      <path d="M32 14c-6 4-10 9-10 16 0 6 4.5 11 10 11s10-5 10-11c0-7-4-12-10-16z" fill="#F6E2D4"></path>
+      <path d="M32 22v18M26 27l6-5 6 5M27 33l5-3 5 3" stroke="#082C6C" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+    <div class="brand-copy">
+      <h1>GI Volume Reconciliation Engine</h1>
+      <p>NFC-based authentication for Consumer Products</p>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="portal">
+  <aside class="sidebar">
+    <div class="nav-label">Consumer</div>
+    <button class="nav-item active" data-pane="c-scan" onclick="switchPane(this)"><i class="fa-solid fa-wifi" aria-hidden="true"></i> Scan Tag</button>
+    <button class="nav-item" data-pane="c-history" onclick="switchPane(this)"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Verification History</button>
+    <button class="nav-item" data-pane="c-trace" onclick="switchPane(this)"><i class="fa-solid fa-route" aria-hidden="true"></i> Traceability</button>
+    <button class="nav-item" data-pane="c-profile" onclick="switchPane(this)"><i class="fa-solid fa-circle-user" aria-hidden="true"></i> Profile</button>
+    <div class="sidebar-foot">GI Authentication System<br>Consumer build v0.1</div>
+  </aside>
+
+  <div class="content">
+    <div class="pane" id="c-scan">
+      <div class="content-head">
+        <div>
+          <h2>Welcome, consumer</h2>
+          <div class="content-sub">Tap a product's NFC tag to verify its origin and authenticity</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3><i class="fa-solid fa-wifi" aria-hidden="true"></i> Scanner interface</h3>
+          <div class="scanner-wrap">
+            <div class="scanner-visual">
+              <div class="scan-ring r1" id="ring1"></div>
+              <div class="scan-ring r2" id="ring2"></div>
+              <div class="tag-icon"><i class="fa-solid fa-tag" aria-hidden="true"></i></div>
+            </div>
+            <div class="scan-status" id="scanStatusRow" aria-live="polite">
+              <span class="scan-dot ready" id="scanDot"></span>
+              <span id="scanStatusText">Ready to scan</span>
+            </div>
+            <div class="scan-actions">
+              <button class="btn btn-primary" id="scanBtn" onclick="scanTag()">
+                <i class="fa-solid fa-hand-pointer" aria-hidden="true"></i> Tap to scan tag
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="certCard" style="display:none;">
+          <h3><i class="fa-solid fa-file-shield" aria-hidden="true"></i> Digital certificate</h3>
+          <div class="cert">
+            <div class="cert-top">
+              <div>
+                <div class="cert-ribbon">Tamper-proof certificate</div>
+                <div class="cert-id" id="certId">Unique ID — —</div>
+              </div>
+              <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="18" fill="#123A38"></circle>
+                <circle cx="20" cy="20" r="14" fill="none" stroke="#E4A030" stroke-width="1.2" stroke-dasharray="1.5 2.4"></circle>
+                <path d="M20 12l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="#F6E2D4"></path>
+              </svg>
+            </div>
+            <div class="cert-hash" id="certHash">hash — —</div>
+            <div class="cert-foot">
+              <span id="certValidated">Validated —</span>
+              <span id="certRecordStatus">Record status: —</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="resultCard" style="display:none;">
+        <h3 id="resultCardTitle"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified product details</h3>
+        <div id="resultCardBody"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="c-history" style="display:none;">
+      <div class="content-head">
+        <div><h2>Verification history</h2><div class="content-sub">Your past NFC scans on this device</div></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Product</th><th>Unit ID</th><th>Result</th></tr></thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane" id="c-trace" style="display:none;">
+      <div class="content-head">
+        <div><h2>Traceability</h2><div class="content-sub">How a batch moves from farm to the tag you scanned</div></div>
+      </div>
+      <div class="card">
+        <div id="traceSteps" style="display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding:6px 2px 2px;"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="c-profile" style="display:none;">
+      <div class="content-head"><div><h2>Profile</h2><div class="content-sub">This demo runs without an account</div></div></div>
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="vd-icon-circle" style="width:56px;height:56px;font-size:20px;"><i class="fa-solid fa-user" aria-hidden="true"></i></div>
+          <div>
+            <div style="font-weight:600;font-size:14.5px;">Guest consumer</div>
+            <div style="font-size:12.5px;color:var(--ink-soft);" id="profileScanCount">0 scans recorded on this device</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+const API_BASE = window.location.origin;
+const HISTORY_KEY = "garuda_consumer_history";
+
+function switchPane(btn){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pane').forEach(p=>p.style.display='none');
+  document.getElementById(btn.dataset.pane).style.display='block';
+}
+
+function scanOnce(){
+  return new Promise((resolve, reject) => {
+    if(!('NDEFReader' in window)){
+      reject(new Error('Web NFC not supported, use Chrome on Android'));
+      return;
+    }
+    const ndef = new NDEFReader();
+    const controller = new AbortController();
+    ndef.scan({ signal: controller.signal }).then(() => {
+      ndef.onreading = (event) => {
+        controller.abort();
+        resolve(event);
+      };
+      ndef.onreadingerror = () => {
+        controller.abort();
+        reject(new Error('Could not read tag, try again'));
+      };
+    }).catch(reject);
+  });
+}
+
+function extractPayload(event){
+  for(const record of event.message.records){
+    if(record.recordType === 'text'){
+      const decoder = new TextDecoder(record.encoding || 'utf-8');
+      const text = decoder.decode(record.data);
+      try{ return JSON.parse(text); } catch(e){ return null; }
+    }
+  }
+  return null;
+}
+
+function getHistory(){
+  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function saveHistoryEntry(entry){
+  const history = getHistory();
+  history.unshift(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
+  renderHistoryTable();
+  updateProfileCount();
+}
+function formatDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+function renderHistoryTable(){
+  const body = document.getElementById('historyBody');
+  const history = getHistory();
+  if(history.length === 0){
+    body.innerHTML = '<tr><td colspan="4" style="color:var(--ink-soft);">No scans yet on this device</td></tr>';
+    return;
+  }
+  body.innerHTML = history.map(h => `
+    <tr>
+      <td>${formatDate(h.scannedAt)}</td>
+      <td>${h.product || 'Unregistered tag'}</td>
+      <td class="mono">${h.batchId}</td>
+      <td>${h.genuine
+        ? '<span class="status-pill status-approved"><i class="fa-solid fa-check" aria-hidden="true"></i> Verified</span>'
+        : '<span class="status-pill status-rejected"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Flagged</span>'}</td>
+    </tr>`).join('');
+}
+function updateProfileCount(){
+  const n = getHistory().length;
+  document.getElementById('profileScanCount').textContent = `${n} scan${n===1?'':'s'} recorded on this device`;
+}
+
+let scanning = false;
+async function scanTag(){
+  if(scanning) return;
+  scanning = true;
+  const scanBtn = document.getElementById('scanBtn');
+  const dot = document.getElementById('scanDot');
+  const text = document.getElementById('scanStatusText');
+  const ring1 = document.getElementById('ring1'), ring2 = document.getElementById('ring2');
+  scanBtn.disabled = true;
+  document.getElementById('resultCard').style.display='none';
+  document.getElementById('certCard').style.display='none';
+  dot.className = 'scan-dot scanning';
+  text.textContent = 'Tap the tag now...';
+  ring1.classList.add('animate'); ring2.classList.add('animate');
+
+  try{
+    const event = await scanOnce();
+    const tagUid = event.serialNumber;
+    const payload = extractPayload(event);
+
+    if(!payload){
+      dot.className = 'scan-dot flagged';
+      text.textContent = 'Tag has no readable data';
+      renderFlaggedResult({ flag: 'no_data', unit_id: null, scanned_tag_uid: tagUid });
+      saveHistoryEntry({ scannedAt: new Date().toISOString(), batchId: tagUid, product: null, genuine: false });
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tag_uid: tagUid, unit_id: payload.unit_id, signature: payload.signature,
+      }),
+    });
+    const data = await res.json();
+
+    if(data.genuine){
+      dot.className = 'scan-dot done';
+      text.textContent = 'Scan complete';
+      renderVerifiedResult(data);
+      saveHistoryEntry({ scannedAt: new Date().toISOString(), batchId: data.unit_id, product: data.crop_type, genuine: true });
+    } else if(data.flag === 'uid_mismatch'){
+      dot.className = 'scan-dot mismatch';
+      text.textContent = 'UID mismatch detected';
+      renderUidMismatchResult(data);
+      saveHistoryEntry({ scannedAt: new Date().toISOString(), batchId: data.unit_id, product: null, genuine: false });
+    } else {
+      dot.className = 'scan-dot flagged';
+      text.textContent = 'Tag verification failed';
+      renderFlaggedResult(data);
+      saveHistoryEntry({ scannedAt: new Date().toISOString(), batchId: data.unit_id, product: null, genuine: false });
+    }
+  } catch(e){
+    dot.className = 'scan-dot flagged';
+    text.textContent = e.message;
+  } finally {
+    ring1.classList.remove('animate'); ring2.classList.remove('animate');
+    scanBtn.disabled = false;
+    scanning = false;
+  }
+}
+
+function renderVerifiedResult(data){
+  const card = document.getElementById('resultCard');
+  const title = document.getElementById('resultCardTitle');
+  const body = document.getElementById('resultCardBody');
+  title.innerHTML = '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified product details';
+  body.innerHTML = `
+    <div class="vd-grid">
+      <div class="vd-icon-block">
+        <div class="vd-icon-circle"><i class="fa-solid fa-tag" aria-hidden="true"></i></div>
+        <span class="badge badge-verified"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Verified</span>
+        <span style="font-size:11px;color:var(--success);font-weight:600;text-align:center;">Tag UID matches regulator record</span>
+      </div>
+      <div class="vd-rows">
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-tag" aria-hidden="true"></i>Product</span><span class="vd-value">${data.crop_type || '-'}</span></div>
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Origin</span><span class="vd-value">${data.region_name || '-'}</span></div>
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-user" aria-hidden="true"></i>Farm</span><span class="vd-value">${data.farm_name || '-'}</span></div>
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-box" aria-hidden="true"></i>Unit ID</span><span class="vd-value mono">${data.unit_id}</span></div>
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Batch ID</span><span class="vd-value mono">${data.batch_id}</span></div>
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>Unit weight</span><span class="vd-value">${data.unit_weight_kg} kg</span></div>
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-fingerprint" aria-hidden="true"></i>NFC tag UID</span><span class="vd-value mono">${data.scanned_tag_uid}</span></div>
+        <div class="vd-row"><span class="vd-label"><i class="fa-solid fa-calendar" aria-hidden="true"></i>Procurement date</span><span class="vd-value">${formatDate(data.timestamp)}</span></div>
+      </div>
+    </div>`;
+  card.style.display = 'block';
+
+  const certCard = document.getElementById('certCard');
+  document.getElementById('certId').textContent = 'Unit ID - ' + data.unit_id;
+  document.getElementById('certHash').textContent = 'hash - ' + data.row_hash;
+  document.getElementById('certValidated').textContent = 'Validated ' + new Date().toISOString().slice(0,16).replace('T',' ');
+  document.getElementById('certRecordStatus').innerHTML = 'Record status: <span style="color:var(--success);font-weight:600;">Immutable, unaltered</span>';
+  certCard.style.display = 'block';
+
+  buildTrace(data.scan_trace);
+}
+
+function renderFlaggedResult(data){
+  const card = document.getElementById('resultCard');
+  const title = document.getElementById('resultCardTitle');
+  const body = document.getElementById('resultCardBody');
+  const messages = {
+    unregistered_batch: 'This batch ID does not match any registered record in the ledger.',
+    signature_mismatch: 'The signature on this tag does not match what the ledger expects for this batch. The tag data may have been altered or the signature copied from elsewhere.',
+    duplicate_scan: 'This tag has already been scanned at this checkpoint before.',
+    no_data: 'This tag has no readable batch data on it.',
+  };
+  const message = messages[data.flag] || 'This tag could not be verified.';
+  title.innerHTML = '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Verification failed';
+  body.innerHTML = `
+    <div class="flag-panel">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <div>
+        <h4>This tag could not be verified</h4>
+        <p>Tag ID <strong style="font-family:var(--font-mono);">${data.scanned_tag_uid || '-'}</strong>. ${message} This scan has been logged and shared with the regulator for review.</p>
+      </div>
+    </div>`;
+  card.style.display = 'block';
+  document.getElementById('certCard').style.display = 'none';
+}
+
+function renderUidMismatchResult(data){
+  const card = document.getElementById('resultCard');
+  const title = document.getElementById('resultCardTitle');
+  const body = document.getElementById('resultCardBody');
+  title.innerHTML = '<i class="fa-solid fa-fingerprint" aria-hidden="true"></i> UID mismatch detected';
+  body.innerHTML = `
+    <div class="flag-panel warn">
+      <i class="fa-solid fa-fingerprint" aria-hidden="true"></i>
+      <div>
+        <h4>Batch record found, but the chip doesn't match</h4>
+        <p>Unit <strong style="font-family:var(--font-mono);">${data.unit_id}</strong> is a genuine registered record, but the NFC chip on this product does not match the chip the regulator registered for that unit. This usually means the printed unit details were copied onto a different, uncertified tag. This scan has been logged and shared with the regulator for review.</p>
+        <div class="uid-compare">
+          <div><span class="uid-compare-label">Expected UID (regulator record)</span><span class="uid-compare-value">${data.expected_tag_uid}</span></div>
+          <div><span class="uid-compare-label">Scanned UID (this tag)</span><span class="uid-compare-value mismatch">${data.scanned_tag_uid}</span></div>
+        </div>
+      </div>
+    </div>`;
+  card.style.display = 'block';
+  document.getElementById('certCard').style.display = 'none';
+}
+
+function buildTrace(traceEntries){
+  const container = document.getElementById('traceSteps');
+  if(!traceEntries || traceEntries.length === 0){
+    container.innerHTML = '<div style="font-size:13px;color:var(--ink-soft);">Scan a tag to see its real checkpoint history here.</div>';
+    return;
+  }
+  container.innerHTML = traceEntries.map((s,i) => `
+    <div style="display:flex;align-items:flex-start;">
+      <div style="display:flex;flex-direction:column;align-items:center;width:150px;text-align:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--sandalwood);display:flex;align-items:center;justify-content:center;color:var(--teal-2);font-size:18px;margin-bottom:8px;">
+          <i class="fa-solid ${s.flag ? 'fa-triangle-exclamation' : 'fa-check'}" aria-hidden="true"></i>
+        </div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--ink);">${s.checkpoint_location}</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:3px;">${formatDate(s.timestamp)}${s.flag ? ' - ' + s.flag : ''}</div>
+      </div>
+      ${i<traceEntries.length-1?'<div style="width:34px;height:2px;background:var(--line);margin:23px 4px 0;flex:none;"></div>':''}
+    </div>
+  `).join('');
+}
+
+renderHistoryTable();
+updateProfileCount();
+buildTrace(null);
+</script>
+</body>
+</html>
